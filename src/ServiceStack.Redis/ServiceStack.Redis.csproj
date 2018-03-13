@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>ServiceStack.Redis</AssemblyName>
     <PackageId>ServiceStack.Redis</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -24,21 +24,6 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <DefineConstants>$(DefineConstants);NET45</DefineConstants>
-    <SignAssembly>True</SignAssembly>
-    <DelaySign>False</DelaySign>
-    <AssemblyOriginatorKeyFile>../servicestack.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <Reference Include="System.Net" />
-
-    <Reference Include="..\..\lib\net45\ServiceStack.Interfaces.dll" />
-    <Reference Include="..\..\lib\net45\ServiceStack.Text.dll" />
-    <Reference Include="..\..\lib\net45\ServiceStack.Common.dll" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD1_3</DefineConstants>
   </PropertyGroup>
@@ -50,10 +35,12 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+  </ItemGroup>
 
-    <Reference Include="..\..\lib\netstandard2.0\ServiceStack.Interfaces.dll" />
-    <Reference Include="..\..\lib\netstandard2.0\ServiceStack.Text.dll" />
-    <Reference Include="..\..\lib\netstandard2.0\ServiceStack.Common.dll" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ServiceStack.Text\src\ServiceStack.Text\ServiceStack.Text.csproj" />
+    <ProjectReference Include="..\..\..\ServiceStack\src\ServiceStack.Common\ServiceStack.Common.csproj" />
+    <ProjectReference Include="..\..\..\ServiceStack\src\ServiceStack.Interfaces\ServiceStack.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>
