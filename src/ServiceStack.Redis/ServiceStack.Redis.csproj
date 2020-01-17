@@ -2,9 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <AssemblyName>FOSS.ServiceStack.Redis.Core</AssemblyName>
-    <PackageId>FOSS.ServiceStack.Redis.Core</PackageId>
-    <PackageVersion>5.0.2</PackageVersion>
+    <AssemblyName>ServiceStack.Redis</AssemblyName>
+    <PackageId>ServiceStack.Redis</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
