@@ -67,7 +67,7 @@ namespace ServiceStack.Redis
             if (UsageTimer == null)
             {
                 //Save Timer Resource for licensed usage
-                //if (!LicenseUtils.HasLicensedFeature(LicenseFeature.Redis))
+                if (!LicenseUtils.HasLicensedFeature(LicenseFeature.Redis))
                 {
                     UsageTimer = new Timer(delegate
                     {
@@ -381,8 +381,8 @@ namespace ServiceStack.Redis
             if (Pipeline == null && Transaction == null)
             {
                 Interlocked.Increment(ref __requestsPerHour);
-                //if (__requestsPerHour % 20 == 0)
-                //    LicenseUtils.AssertValidUsage(LicenseFeature.Redis, QuotaType.RequestsPerHour, __requestsPerHour);
+                if (__requestsPerHour % 20 == 0)
+                    LicenseUtils.AssertValidUsage(LicenseFeature.Redis, QuotaType.RequestsPerHour, __requestsPerHour);
             }
 
             if (log.IsDebugEnabled && !RedisConfig.DisableVerboseLogging)
@@ -575,7 +575,8 @@ namespace ServiceStack.Redis
                 catch (Exception outerEx)
                 {
                     var retryableEx = outerEx as RedisRetryableException;
-                    if (retryableEx == null && outerEx is RedisException)
+                    if (retryableEx == null && outerEx is RedisException
+                        || outerEx is LicenseException)
                     {
                         ResetSendBuffer();
                         throw;
