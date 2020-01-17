@@ -21,12 +21,11 @@ namespace ConsoleTests
             //RedisConfig.DefaultRetryTimeout = 15 * 1000;
             RedisConfig.DefaultIdleTimeOutSecs = 240;
             RedisConfig.BackOffMultiplier = 10;
-            RedisConfig.BufferLength = 1450;
             RedisConfig.BufferPoolMaxSize = 500000;
             RedisConfig.VerifyMasterConnections = true;
             RedisConfig.HostLookupTimeoutMs = 1000;
             RedisConfig.DeactivatedClientsExpiry = TimeSpan.FromSeconds(15);
-            RedisConfig.DisableVerboseLogging = false;
+            RedisConfig.EnableVerboseLogging = true;
 
             var redisManager = new RedisManagerPool("localhost?connectTimeout=1000");
 

@@ -41,6 +41,7 @@ namespace ServiceStack.Redis
         public int? SocketSendTimeout { get; set; }
         public int? SocketReceiveTimeout { get; set; }
         public int? IdleTimeOutSecs { get; set; }
+        public bool AssertAccessOnlyOnSameThread { get; set; }
 
         /// <summary>
         /// Gets or sets object key prefix.
@@ -140,6 +141,8 @@ namespace ServiceStack.Redis
                 ? poolTimeOutSeconds * 1000
                 : 2000; //Default Timeout
 
+            this.AssertAccessOnlyOnSameThread = RedisConfig.AssertAccessOnlyOnSameThread;
+
             JsConfig.InitStatics();
 
             if (this.Config.AutoStart)
@@ -157,6 +160,11 @@ namespace ServiceStack.Redis
         {
             Interlocked.Increment(ref RedisState.TotalFailovers);
 
+            var masters = readWriteHosts.ToList();
+            var replicas = readOnlyHosts.ToList();
+
+            Log.Info($"FailoverTo: {string.Join(",", masters)} : {string.Join(",", replicas)} Total: {RedisState.TotalFailovers}");
+
             lock (readClients)
             {
                 for (var i = 0; i < readClients.Length; i++)
@@ -167,7 +175,7 @@ namespace ServiceStack.Redis
 
                     readClients[i] = null;
                 }
-                RedisResolver.ResetSlaves(readOnlyHosts);
+                RedisResolver.ResetSlaves(replicas);
             }
 
             lock (writeClients)
@@ -180,7 +188,7 @@ namespace ServiceStack.Redis
 
                     writeClients[i] = null;
                 }
-                RedisResolver.ResetMasters(readWriteHosts);
+                RedisResolver.ResetMasters(masters);
             }
 
             if (this.OnFailover != null)
@@ -244,7 +252,9 @@ namespace ServiceStack.Redis
 
                         InitClient(inActiveClient);
 
-                        return inActiveClient;
+                        return !AssertAccessOnlyOnSameThread 
+                            ? inActiveClient
+                            : inActiveClient.LimitAccessToThread(Thread.CurrentThread.ManagedThreadId, Environment.StackTrace);
                     }
                 }
 
@@ -277,7 +287,10 @@ namespace ServiceStack.Redis
 
                         WritePoolIndex++;
                         writeClients[inactivePoolIndex] = newClient;
-                        return newClient;
+
+                        return !AssertAccessOnlyOnSameThread 
+                            ? newClient
+                            : newClient.LimitAccessToThread(Thread.CurrentThread.ManagedThreadId, Environment.StackTrace);
                     }
                 }
                 catch
@@ -525,6 +538,7 @@ namespace ServiceStack.Redis
                     }
                     else
                     {
+                        client.TrackThread = null;
                         client.Active = false;
                     }
 
@@ -545,6 +559,7 @@ namespace ServiceStack.Redis
                     }
                     else
                     {
+                        client.TrackThread = null;
                         client.Active = false;
                     }
 

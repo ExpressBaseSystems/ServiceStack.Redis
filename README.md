@@ -1,5 +1,4 @@
-Follow [@ServiceStack](https://twitter.com/servicestack) or join the [Google+ Community](https://plus.google.com/communities/112445368900682590445)
-for updates, or [StackOverflow](http://stackoverflow.com/questions/ask) or the [Customer Forums](https://forums.servicestack.net/) for support.
+Follow [@ServiceStack](https://twitter.com/servicestack) or [view the docs](https://docs.servicestack.net), use [StackOverflow](http://stackoverflow.com/questions/ask) or the [Customer Forums](https://forums.servicestack.net/) for support.
 
 # C#/.NET Client for Redis
 
@@ -122,7 +121,7 @@ run and explore Redis features from the comfort of your browser with zero softwa
 
 ## Redis Client Managers
 
-The recommended way to access `RedisClient` instances is to use one of the available Thread-Safe Client Managers below. Client Managers are connection factories which is ideally registered as a Singleton either in your IOC or static classes. 
+The recommended way to access `RedisClient` instances is to use one of the available Thread-Safe Client Managers below. Client Managers are connection factories which should be registered as a Singleton either in your IOC or static class. 
 
 ### RedisManagerPool
 
@@ -158,7 +157,7 @@ The `PooledRedisClientManager` imposes a maximum connection limit and when its m
 
 ### BasicRedisClientManager
 
-If don't want to use connection pooling (i.e. your accessing a local redis-server instance) you can use a basic (non-pooled) Clients Manager which creates a new `RedisClient` instance each time:
+If don't want to use connection pooling (i.e. you're accessing a local redis-server instance) you can use a basic (non-pooled) Clients Manager which creates a new `RedisClient` instance each time:
 
 ```csharp
 container.Register<IRedisClientsManager>(c => 
@@ -294,19 +293,18 @@ RedisConfig.DefaultRetryTimeout = 10000;
 RedisConfig.BackOffMultiplier = 10;
 ```
 
-## [ServiceStack.Redis SSL Support](https://github.com/ServiceStack/ServiceStack/wiki/Secure-SSL-Redis-connections-to-Azure-Redis)
+## [ServiceStack.Redis SSL Support](http://docs.servicestack.net/ssl-redis-azure)
 
 ServiceStack.Redis now supporting **SSL connections** making it suitable for accessing remote Redis server instances over a 
 **secure SSL connection**.
 
 ![Azure Redis Cache](https://github.com/ServiceStack/Assets/raw/master/img/wikis/redis/azure-redis-instance.png)
 
-### [Connecting to Azure Redis](https://github.com/ServiceStack/ServiceStack/wiki/Secure-SSL-Redis-connections-to-Azure-Redis)
+### [Connecting to Azure Redis](http://docs.servicestack.net/ssl-redis-azure)
 
 As connecting to [Azure Redis Cache](http://azure.microsoft.com/en-us/services/cache/) via SSL was the primary use-case for this feature, 
 we've added a new 
-[Getting connected to Azure Redis via SSL](https://github.com/ServiceStack/ServiceStack/wiki/Secure-SSL-Redis-connections-to-Azure-Redis) 
-to help you get started.
+[Getting connected to Azure Redis via SSL](http://docs.servicestack.net/ssl-redis-azure) to help you get started.
 
 ## [Redis GEO](https://github.com/ServiceStackApps/redis-geo)
 
@@ -761,6 +759,30 @@ daysOfWeek.PrintDump(); //[Sunday, Monday, Tuesday, ...]
 More examples can be found in the [Redis Eval Lua tests](https://github.com/ServiceStack/ServiceStack.Redis/blob/master/tests/ServiceStack.Redis.Tests/RedisClientEvalTests.cs
 )
 
+### Debugging Data Corruption Issues
+
+An issue that can be hard to debug is if the same `RedisClient` instance is shared across multiple threads which can result in returning corrupted data. 
+Typically this is a result of using `IRedisClient` field in a singleton instance or sharing it as a static instance. To prevent this, each Thread that
+uses Redis should retrieve the redis client within a using statement, e.g:
+
+```csharp
+using (var redis = redisManager.GetClient())
+{
+    //..         
+}
+```
+
+Unfortunately the call-site which returns the corrupted response or runtime Exception doesn't identify where else the Redis client instance was being used.
+To help identify where client instances are being used you can assert that the client is only used in the Thread that resolved it from the pool with:
+
+```csharp
+RedisConfig.AssertAccessOnlyOnSameThread = true;
+```
+
+This captures the Thread's StackTrace each time the client is resolved from the pool which as it adds a lot of overhead, should only be enabled when debugging connection issues. 
+
+If it does detect the client is being accessed from a different thread it will throw a `InvalidAccessException` with the message containing the different **Thread Ids** and the **original StackTrace** where the client was resolved from the pool. You can compare this with the StackTrace of the Exception to hopefully identify where the client is being improperly used.
+
 ## Copying
 
 Since September 2013, ServiceStack source code is available under GNU Affero General Public License/FOSS License Exception, see license.txt in the source. Alternative commercial licensing is also available, see https://servicestack.net/pricing for details.
@@ -966,9 +988,5 @@ type as well as serializing and de-serializing each record using Service Stack's
   - [Synchronizing Redis local caches for distributed multi-subscriber scenarios](http://toreaurstad.blogspot.no/2015/09/synchronizing-redis-local-caches-for.html) by [@Tore_Aurstad](https://twitter.com/Tore_Aurstad)
   - [Distributed Caching using Redis Server with .NET/C# Client](http://www.codeproject.com/Articles/636730/Distributed-Caching-using-Redis) by [Sem.Shekhovtsov](http://www.codeproject.com/script/Membership/View.aspx?mid=6495187)
   - [Fan Messaging with ServiceStack.Redis](http://cornishdev.wordpress.com/2013/04/04/fan-messaging-with-servicestack-redis/) by [miket](http://stackoverflow.com/users/1804544/miket)
-  - [Redis and VB.Net](http://blogs.lessthandot.com/index.php/DataMgmt/DBProgramming/redis-and-vb-net) by [@chrissie1](https://twitter.com/chrissie1)
-  - [Using ServiceStack.Redis Part 2: Sets and Hashes](http://michaelsarchet.com/using-servicestack-redis-part-2-sets-and-hashes/) by [@msarchet](http://twitter.com/msarchet)
-  - [Using the ServiceStack.Redis Client](http://michaelsarchet.com/using-the-servicestack-redis-client/) by [@msarchet](http://twitter.com/msarchet)
-  - [Implementing ServiceStack.Redis.RedisClient (.NET Client for Redis)](http://www.narizwallace.com/2012/10/implementing-servicestack-redis-redisclient-net-client-for-redis/) by [@NarizWallace](https://twitter.com/NarizWallace)
   - [Getting started with Redis in ASP.NET under Windows](http://maxivak.com/getting-started-with-redis-and-asp-net-mvc-under-windows/) by [@maxivak](https://twitter.com/maxivak)
   
